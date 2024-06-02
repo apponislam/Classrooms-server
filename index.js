@@ -40,22 +40,43 @@ async function run() {
         await client.connect();
 
         const allUsers = client.db("ClassroomDB").collection("Users");
+        const allClasses = client.db("ClassroomDB").collection("Classes");
+
+        // All Users
 
         app.get("/Users", async (req, res) => {
             const result = await allUsers.find().toArray();
             res.send(result);
         });
 
+        app.get("/Users/email/:email", async (req, res) => {
+            const { email } = req.params;
+            const query = { email: email };
+            const cursor = allUsers.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
         app.post("/Users", async (req, res) => {
             const user = req.body;
-
             const existingUser = await allUsers.findOne({ email: user.email });
-
             if (existingUser) {
                 return res.status(400).send({ message: "User already exists" });
             }
-
             const result = await allUsers.insertOne(user);
+            res.send(result);
+        });
+
+        // All Classes
+
+        app.get("/Classes", async (req, res) => {
+            const result = await allClasses.find().toArray();
+            res.send(result);
+        });
+
+        app.post("/Classes", async (req, res) => {
+            const Class = req.body;
+            const result = await allClasses.insertOne(Class);
             res.send(result);
         });
 
