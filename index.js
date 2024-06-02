@@ -84,7 +84,14 @@ async function run() {
         app.patch("/Classes/:id", async (req, res) => {
             const id = req.params.id;
             const statusUpdate = req.body;
-            console.log(id, statusUpdate);
+            const filter = { _id: new ObjectId(id) };
+            const updateClass = {
+                $set: {
+                    status: statusUpdate.status,
+                },
+            };
+            const result = await allClasses.updateOne(filter, updateClass);
+            res.send(result);
         });
 
         app.post("/Classes", async (req, res) => {
