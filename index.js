@@ -49,6 +49,15 @@ async function run() {
             res.send(result);
         });
 
+        app.get("/PendingUsers", async (req, res) => {
+            const result = await allUsers
+                .find({
+                    status: { $in: ["rejected", "pending", "accepted"] },
+                })
+                .toArray();
+            res.send(result);
+        });
+
         app.get("/Users/email/:email", async (req, res) => {
             const { email } = req.params;
             const query = { email: email };
