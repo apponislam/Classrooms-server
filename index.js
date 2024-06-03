@@ -67,6 +67,25 @@ async function run() {
             res.send(result);
         });
 
+        app.put("/Users/email/:email", async (req, res) => {
+            const { email } = req.params;
+            const requestTeacher = req.body;
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    status: requestTeacher.status,
+                    category: requestTeacher.category,
+                    experience: requestTeacher.experience,
+                    title: requestTeacher.title,
+                    name: requestTeacher.name,
+                    imagelink: requestTeacher.image,
+                },
+            };
+            const result = await allUsers.updateOne(filter, updateDoc, options);
+            res.send(result);
+        });
+
         // All Classes
 
         app.get("/Classes", async (req, res) => {
