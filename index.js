@@ -49,6 +49,19 @@ async function run() {
             res.send(result);
         });
 
+        app.patch("/Users/:id", async (req, res) => {
+            const id = req.params.id;
+            const updateUser = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const updateAdmin = {
+                $set: {
+                    role: updateUser.role,
+                },
+            };
+            const result = await allUsers.updateOne(filter, updateAdmin);
+            res.send(result);
+        });
+
         app.get("/PendingUsers", async (req, res) => {
             const result = await allUsers
                 .find({
@@ -61,15 +74,14 @@ async function run() {
         app.patch("/PendingUsers/:id", async (req, res) => {
             const id = req.params.id;
             const updateUser = req.body;
-            console.log(id, updateUser);
             const filter = { _id: new ObjectId(id) };
-            const updateClass = {
+            const updateTeacher = {
                 $set: {
                     role: updateUser.role,
                     status: updateUser.status,
                 },
             };
-            const result = await allUsers.updateOne(filter, updateClass);
+            const result = await allUsers.updateOne(filter, updateTeacher);
             res.send(result);
         });
 
