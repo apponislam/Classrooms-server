@@ -123,9 +123,24 @@ async function run() {
         });
 
         // All Classes
+        // All Classes
+        // All Classes
+        // All Classes
+        // All Classes
+        // All Classes
+        // All Classes
+        // All Classes
 
         app.get("/Classes", async (req, res) => {
             const result = await allClasses.find().toArray();
+            res.send(result);
+        });
+
+        app.get("/Classes/email/:email", async (req, res) => {
+            const { email } = req.params;
+            const query = { email: email };
+            const cursor = allClasses.find(query);
+            const result = await cursor.toArray();
             res.send(result);
         });
 
@@ -133,6 +148,23 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await allClasses.findOne(query);
+            res.send(result);
+        });
+
+        app.put("/Classes/:id", async (req, res) => {
+            const id = req.params.id;
+            const updateTeacherClass = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const option = { upsert: true };
+            const updateClass = {
+                $set: {
+                    title: updateTeacherClass.title,
+                    description: updateTeacherClass.description,
+                    image: updateTeacherClass.image,
+                    price: updateTeacherClass.price,
+                },
+            };
+            const result = await allClasses.updateOne(filter, updateClass, option);
             res.send(result);
         });
 
@@ -152,6 +184,13 @@ async function run() {
         app.post("/Classes", async (req, res) => {
             const Class = req.body;
             const result = await allClasses.insertOne(Class);
+            res.send(result);
+        });
+
+        app.delete("/Classes/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await allClasses.deleteOne(query);
             res.send(result);
         });
 
