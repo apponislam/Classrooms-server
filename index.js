@@ -45,6 +45,7 @@ async function run() {
         const allUsers = client.db("ClassroomDB").collection("Users");
         const allClasses = client.db("ClassroomDB").collection("Classes");
         const paymnetInfo = client.db("ClassroomDB").collection("paymnetInfo");
+        const classAssignment = client.db("ClassroomDB").collection("assignmentInfo");
 
         // All Users
 
@@ -201,10 +202,19 @@ async function run() {
 
         app.patch("/Classes/Enroll/:id", async (req, res) => {
             const id = req.params.id;
-            const statusUpdate = req.body;
             const filter = { _id: new ObjectId(id) };
             const updateClass = {
                 $inc: { enroll: 1 },
+            };
+            const result = await allClasses.updateOne(filter, updateClass);
+            res.send(result);
+        });
+
+        app.patch("/Classes/assignments/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateClass = {
+                $inc: { assignments: 1 },
             };
             const result = await allClasses.updateOne(filter, updateClass);
             res.send(result);
@@ -220,6 +230,29 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await allClasses.deleteOne(query);
+            res.send(result);
+        });
+
+        // Class Assignment
+        // Class Assignment
+        // Class Assignment
+        // Class Assignment
+
+        app.get("/Assignments", async (req, res) => {
+            const result = await classAssignment.find().toArray();
+            res.send(result);
+        });
+
+        app.get("/Assignments/ClassId/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { classId: id };
+            const result = await classAssignment.find(query).toArray();
+            res.send(result);
+        });
+
+        app.post("/Assignments", async (req, res) => {
+            const Assignment = req.body;
+            const result = await classAssignment.insertOne(Assignment);
             res.send(result);
         });
 
@@ -261,31 +294,31 @@ async function run() {
         // ALL Payment
         // ALL Payment
 
-        app.post("/Payment", async (req, res) => {
-            const { Class } = req.body;
-            // console.log(Class);
-            const session = await stripe.checkout.sessions.create({
-                payment_method_types: ["card"],
-                line_items: [
-                    {
-                        price_data: {
-                            currency: "usd",
-                            product_data: {
-                                name: Class.name,
-                                description: Class.description,
-                            },
-                            unit_amount: parseInt(Class.price * 100), // price in cents
-                        },
-                        quantity: 1,
-                    },
-                ],
-                mode: "payment",
-                success_url: "http://localhost:5173/dashboard/myenroll-class",
-                cancel_url: "http://localhost:5173/AllClass",
-            });
+        // app.post("/Payment", async (req, res) => {
+        //     const { Class } = req.body;
+        //     // console.log(Class);
+        //     const session = await stripe.checkout.sessions.create({
+        //         payment_method_types: ["card"],
+        //         line_items: [
+        //             {
+        //                 price_data: {
+        //                     currency: "usd",
+        //                     product_data: {
+        //                         name: Class.name,
+        //                         description: Class.description,
+        //                     },
+        //                     unit_amount: parseInt(Class.price * 100), // price in cents
+        //                 },
+        //                 quantity: 1,
+        //             },
+        //         ],
+        //         mode: "payment",
+        //         success_url: "http://localhost:5173/dashboard/myenroll-class",
+        //         cancel_url: "http://localhost:5173/AllClass",
+        //     });
 
-            res.json({ id: session.id });
-        });
+        //     res.json({ id: session.id });
+        // });
 
         app.post("/create-payment-intent", async (req, res) => {
             const { price } = req.body;
