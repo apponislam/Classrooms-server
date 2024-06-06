@@ -46,6 +46,7 @@ async function run() {
         const allClasses = client.db("ClassroomDB").collection("Classes");
         const paymnetInfo = client.db("ClassroomDB").collection("paymnetInfo");
         const classAssignment = client.db("ClassroomDB").collection("assignmentInfo");
+        const feedback = client.db("ClassroomDB").collection("feedbackInfo");
 
         // All Users
 
@@ -220,6 +221,16 @@ async function run() {
             res.send(result);
         });
 
+        app.patch("/Classes/assignmentsubmits/:id", async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateClass = {
+                $inc: { submitedAssignments: 1 },
+            };
+            const result = await allClasses.updateOne(filter, updateClass);
+            res.send(result);
+        });
+
         app.post("/Classes", async (req, res) => {
             const Class = req.body;
             const result = await allClasses.insertOne(Class);
@@ -253,6 +264,31 @@ async function run() {
         app.post("/Assignments", async (req, res) => {
             const Assignment = req.body;
             const result = await classAssignment.insertOne(Assignment);
+            res.send(result);
+        });
+
+        // Feedback Info
+        // Feedback Info
+        // Feedback Info
+        // Feedback Info
+        // Feedback Info
+        // Feedback Info
+
+        app.get("/feedback", async (req, res) => {
+            const result = await feedback.find().toArray();
+            res.send(result);
+        });
+
+        app.get("/feedback/ClassId/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { classId: id };
+            const result = await feedback.find(query).toArray();
+            res.send(result);
+        });
+
+        app.post("/feedback", async (req, res) => {
+            const feedbackItem = req.body;
+            const result = await feedback.insertOne(feedbackItem);
             res.send(result);
         });
 
