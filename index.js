@@ -1,10 +1,11 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
+// const stripe = require("stripe")("sk_test_51POH2H003ufns5WKI0hARgSJC9LZGnWc8CXiN8Xs1pesTbtJnXmZou5zjNkqtydX6GnQ4dCgSRxE3yVZ9dtD2uId00Ia2e32g3");
 
 const app = express();
-require("dotenv").config();
-
 const port = process.env.PORT || 5000;
 
 // app.use(
@@ -21,6 +22,8 @@ app.use(express.json());
 app.get("/", function (req, res) {
     res.send("Classroom server is running");
 });
+
+// console.log(process.env.STRIPE_SECRET);
 
 // const uri = "mongodb+srv://ApponClassroom:aHsxhUhBCGbmhKow@cluster0.4bvpsnf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.4bvpsnf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -206,6 +209,57 @@ async function run() {
             const query = { _id: new ObjectId(id) };
             const result = await allClasses.deleteOne(query);
             res.send(result);
+        });
+
+        // ALL Payment
+        // ALL Payment
+        // ALL Payment
+        // ALL Payment
+        // ALL Payment
+        // ALL Payment
+
+        app.post("/Payment", async (req, res) => {
+            const { Class } = req.body;
+            // console.log(Class);
+            const session = await stripe.checkout.sessions.create({
+                payment_method_types: ["card"],
+                line_items: [
+                    {
+                        price_data: {
+                            currency: "usd",
+                            product_data: {
+                                name: Class.name,
+                                description: Class.description,
+                            },
+                            unit_amount: parseInt(Class.price * 100), // price in cents
+                        },
+                        quantity: 1,
+                    },
+                ],
+                mode: "payment",
+                success_url: "http://localhost:5173/dashboard/my-enroll",
+                cancel_url: "http://localhost:5173/AllClass",
+            });
+
+            res.json({ id: session.id });
+        });
+
+        app.post("/create-payment-intent", async (req, res) => {
+            const { price } = req.body;
+            console.log(price);
+            const amount = parseInt(price * 100);
+            console.log(amount);
+
+            // Create a PaymentIntent with the order amount and currency
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ["card"],
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
         });
 
         await client.db("admin").command({ ping: 1 });
