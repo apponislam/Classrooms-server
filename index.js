@@ -44,6 +44,7 @@ async function run() {
 
         const allUsers = client.db("ClassroomDB").collection("Users");
         const allClasses = client.db("ClassroomDB").collection("Classes");
+        const paymnetInfo = client.db("ClassroomDB").collection("paymnetInfo");
 
         // All Users
 
@@ -198,6 +199,17 @@ async function run() {
             res.send(result);
         });
 
+        app.patch("/Classes/Enroll/:id", async (req, res) => {
+            const id = req.params.id;
+            const statusUpdate = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const updateClass = {
+                $inc: { enroll: 1 },
+            };
+            const result = await allClasses.updateOne(filter, updateClass);
+            res.send(result);
+        });
+
         app.post("/Classes", async (req, res) => {
             const Class = req.body;
             const result = await allClasses.insertOne(Class);
@@ -208,6 +220,37 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await allClasses.deleteOne(query);
+            res.send(result);
+        });
+
+        // Payment Info
+        // Payment Info
+        // Payment Info
+        // Payment Info
+
+        app.get("/PaymentInfo", async (req, res) => {
+            const result = await paymnetInfo.find().toArray();
+            res.send(result);
+        });
+
+        app.get("/PaymentInfo/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await paymnetInfo.findOne(query);
+            res.send(result);
+        });
+
+        app.get("/PaymentInfo/email/:email", async (req, res) => {
+            const { email } = req.params;
+            const query = { email: email };
+            const cursor = paymnetInfo.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        });
+
+        app.post("/PaymentInfo", async (req, res) => {
+            const Class = req.body;
+            const result = await paymnetInfo.insertOne(Class);
             res.send(result);
         });
 
@@ -237,7 +280,7 @@ async function run() {
                     },
                 ],
                 mode: "payment",
-                success_url: "http://localhost:5173/dashboard/my-enroll",
+                success_url: "http://localhost:5173/dashboard/myenroll-class",
                 cancel_url: "http://localhost:5173/AllClass",
             });
 
@@ -246,9 +289,9 @@ async function run() {
 
         app.post("/create-payment-intent", async (req, res) => {
             const { price } = req.body;
-            console.log(price);
+            // console.log(price);
             const amount = parseInt(price * 100);
-            console.log(amount);
+            // console.log(amount);
 
             // Create a PaymentIntent with the order amount and currency
             const paymentIntent = await stripe.paymentIntents.create({
