@@ -56,7 +56,7 @@ async function run() {
         // JWT
 
         const verifyToken = (req, res, next) => {
-            console.log(req.headers.authorization);
+            // console.log(req.headers.authorization);
             const token = req.headers.authorization;
             if (!req.headers.authorization) {
                 res.status(401).send({ message: "Forbidden access" });
@@ -68,6 +68,17 @@ async function run() {
                 req.decoded = decoded;
                 next();
             });
+        };
+
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await allUsers.findOne(query);
+            const isAdmin = user?.role === "admin";
+            if (!isAdmin) {
+                return res.status(403).send({ message: "Forbidden access" });
+            }
+            next();
         };
 
         app.post("/jwt", async (req, res) => {
@@ -93,7 +104,7 @@ async function run() {
             res.send(result);
         });
 
-        app.patch("/Users/:id", async (req, res) => {
+        app.patch("/Users/:id", verifyToken, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const updateUser = req.body;
             const filter = { _id: new ObjectId(id) };
