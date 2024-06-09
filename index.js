@@ -16,19 +16,23 @@ const port = process.env.PORT || 5000;
 //     })
 // );
 
-app.use(cors());
-
-app.use(express.json());
-
-app.get("/", function (req, res) {
-    res.send("Classroom server is running");
-});
+app.use(
+    cors({
+        origin: ["http://localhost:5173", "https://assignmentb9a12.web.app", "https://assignmentb9a12.firebaseapp.com"],
+    })
+);
 
 const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
 };
+
+app.use(express.json());
+
+app.get("/", function (req, res) {
+    res.send("Classroom server is running");
+});
 
 // const uri = "mongodb+srv://ApponClassroom:aHsxhUhBCGbmhKow@cluster0.4bvpsnf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.4bvpsnf.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -45,7 +49,7 @@ const client = new MongoClient(uri, {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
         const allUsers = client.db("ClassroomDB").collection("Users");
         const allClasses = client.db("ClassroomDB").collection("Classes");
@@ -99,9 +103,20 @@ async function run() {
 
         // All Users
 
-        app.get("/Users", verifyToken, async (req, res) => {
-            const result = await allUsers.find().toArray();
+        app.get("/Users", async (req, res) => {
+            const page = parseInt(req.query.page);
+            const size = parseInt(req.query.size);
+            const result = await allUsers
+                .find()
+                .skip(page * size)
+                .limit(size)
+                .toArray();
             res.send(result);
+        });
+
+        app.get("/UsersCount", async (req, res) => {
+            const count = await allUsers.estimatedDocumentCount();
+            res.send({ count });
         });
 
         app.patch("/Users/:id", verifyToken, verifyAdmin, async (req, res) => {
@@ -187,8 +202,19 @@ async function run() {
         // All Classes
 
         app.get("/Classes", async (req, res) => {
-            const result = await allClasses.find().toArray();
+            const page = parseInt(req.query.page);
+            const size = parseInt(req.query.size);
+            const result = await allClasses
+                .find()
+                .skip(page * size)
+                .limit(size)
+                .toArray();
             res.send(result);
+        });
+
+        app.get("/ClassesCount", async (req, res) => {
+            const count = await allClasses.estimatedDocumentCount();
+            res.send({ count });
         });
 
         app.get("/Classes/email/:email", async (req, res) => {
@@ -207,10 +233,21 @@ async function run() {
         });
 
         app.get("/Classes/Approved", async (req, res) => {
+            const page = parseInt(req.query.page);
+            const size = parseInt(req.query.size);
             const query = { status: "approved" };
-            const cursor = allClasses.find(query);
-            const result = await cursor.toArray();
+            const result = await allClasses
+                .find(query)
+                .skip(page * size)
+                .limit(size)
+                .toArray();
             res.send(result);
+        });
+
+        app.get("/ApprovedClassCount", async (req, res) => {
+            const query = { status: "approved" };
+            const count = await allClasses.countDocuments(query);
+            res.send({ count });
         });
 
         app.get("/Classes/:id", async (req, res) => {
@@ -423,8 +460,8 @@ async function run() {
             });
         });
 
-        await client.db("admin").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        // await client.db("admin").command({ ping: 1 });
+        // console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
         // await client.close();
