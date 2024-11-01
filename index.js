@@ -133,12 +133,23 @@ async function run() {
         });
 
         app.get("/PendingUsers", async (req, res) => {
-            const result = await allUsers
-                .find({
-                    status: { $in: ["rejected", "pending", "accepted"] },
-                })
-                .toArray();
-            res.send(result);
+            try {
+                // Step 1: Check if any document has a "status" field
+                const hasStatusField = await allUsers.findOne({ status: { $exists: true } });
+
+                if (!hasStatusField) {
+                    // If no document has the "status" field, return an empty array or message
+                    return res.send([]);
+                }
+
+                // Step 2: If a document with "status" exists, retrieve documents with specific status values
+                const result = await allUsers.find({ status: { $in: ["rejected", "pending", "accepted"] } }).toArray();
+
+                res.send(result);
+            } catch (error) {
+                console.error("Error fetching users by status:", error);
+                res.status(500).send("An error occurred while fetching users.");
+            }
         });
 
         app.patch("/PendingUsers/:id", async (req, res) => {
@@ -350,6 +361,18 @@ async function run() {
         app.post("/Assignments", async (req, res) => {
             const Assignment = req.body;
             const result = await classAssignment.insertOne(Assignment);
+            res.send(result);
+        });
+
+        app.put("/Assignments/Submits/:id", async (req, res) => {
+            const id = req.params.id;
+            const email = req.body.email;
+            const filter = { classId: id };
+            const updateClass = {
+                $inc: { submitedAssignments: 1 },
+                $push: { submittedEmails: email },
+            };
+            const result = await classAssignment.updateOne(filter, updateClass);
             res.send(result);
         });
 
