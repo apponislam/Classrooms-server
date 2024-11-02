@@ -55,6 +55,7 @@ async function run() {
         const allClasses = client.db("ClassroomDB").collection("Classes");
         const paymnetInfo = client.db("ClassroomDB").collection("paymnetInfo");
         const classAssignment = client.db("ClassroomDB").collection("assignmentInfo");
+        const classAssignmentSubmit = client.db("ClassroomDB").collection("assignmentSubmitInfo");
         const feedback = client.db("ClassroomDB").collection("feedbackInfo");
 
         // JWT
@@ -367,12 +368,41 @@ async function run() {
         app.put("/Assignments/Submits/:id", async (req, res) => {
             const id = req.params.id;
             const email = req.body.email;
-            const filter = { classId: id };
+            const assignmentTitle = req.body.assignmentTitle;
+            console.log(assignmentTitle);
+            const filter = {
+                classId: id,
+                assignmentTitle: assignmentTitle,
+            };
             const updateClass = {
                 $inc: { submitedAssignments: 1 },
                 $push: { submittedEmails: email },
             };
             const result = await classAssignment.updateOne(filter, updateClass);
+            res.send(result);
+        });
+
+        // Class Assignment Submit
+        // Class Assignment Submit
+        // Class Assignment Submit
+        // Class Assignment Submit
+        // Class Assignment Submit
+
+        app.get("/AssignmentsSubmit", async (req, res) => {
+            const result = await classAssignmentSubmit.find().toArray();
+            res.send(result);
+        });
+
+        app.get("/AssignmentsSubmit/AssgnmentId/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { assignmentId: id };
+            const result = await classAssignmentSubmit.find(query).toArray();
+            res.send(result);
+        });
+
+        app.post("/AssignmentsSubmit", async (req, res) => {
+            const submitAssignment = req.body;
+            const result = await classAssignmentSubmit.insertOne(submitAssignment);
             res.send(result);
         });
 
