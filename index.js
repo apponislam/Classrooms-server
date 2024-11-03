@@ -57,6 +57,7 @@ async function run() {
         const classAssignment = client.db("ClassroomDB").collection("assignmentInfo");
         const classAssignmentSubmit = client.db("ClassroomDB").collection("assignmentSubmitInfo");
         const feedback = client.db("ClassroomDB").collection("feedbackInfo");
+        const classVideos = client.db("ClassroomDB").collection("classVideos");
 
         // JWT
 
@@ -342,6 +343,61 @@ async function run() {
             res.send(result);
         });
 
+        // Class Videos
+        // Class Videos
+        // Class Videos
+        // Class Videos
+        // Class Videos
+
+        app.get("/Classvideos", async (req, res) => {
+            const result = await classVideos.find().toArray();
+            res.send(result);
+        });
+
+        app.post("/Classvideos", async (req, res) => {
+            const classVideo = req.body;
+            const result = await classVideos.insertOne(classVideo);
+            res.send(result);
+        });
+
+        app.get("/Classvideos/ClassId/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { classId: id };
+            const result = await classVideos.find(query).toArray();
+            res.send(result);
+        });
+
+        app.patch("/Classvideos/ClassId/Update/:id", async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const query = { _id: new ObjectId(id) };
+            const newVideoLink = req.body.videoLink;
+            const videoTitle = req.body.videoTitle;
+            // console.log(newVideoLink);
+
+            const updateDoc = {
+                $set: {
+                    videoLink: newVideoLink,
+                    videoTitle: videoTitle,
+                },
+            };
+
+            try {
+                const result = await classVideos.updateOne(query, updateDoc);
+                res.send(result);
+            } catch (error) {
+                console.error("Error updating video link:", error);
+                res.status(500).send({ error: "Failed to update video link" });
+            }
+        });
+
+        app.delete("/Classvideos/delete/:id", async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) }; // Match by _id; adjust if you want to delete by classId
+            const result = await classVideos.deleteOne(query);
+            res.send(result);
+        });
+
         // Class Assignment
         // Class Assignment
         // Class Assignment
@@ -369,7 +425,7 @@ async function run() {
             const id = req.params.id;
             const email = req.body.email;
             const assignmentTitle = req.body.assignmentTitle;
-            console.log(assignmentTitle);
+            // console.log(assignmentTitle);
             const filter = {
                 classId: id,
                 assignmentTitle: assignmentTitle,
