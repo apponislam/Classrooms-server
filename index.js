@@ -134,6 +134,22 @@ async function run() {
             res.send(result);
         });
 
+        app.put("/updateUser/:id", async (req, res) => {
+            const id = req.params.id;
+            const updateUser = req.body;
+            console.log(id, updateUser);
+            const filter = { _id: new ObjectId(id) };
+            const updateMainUser = {
+                $set: {
+                    name: updateUser.name,
+                    imagelink: updateUser.image,
+                    number: updateUser.number,
+                },
+            };
+            const result = await allUsers.updateOne(filter, updateMainUser);
+            res.send(result);
+        });
+
         app.get("/PendingUsers", async (req, res) => {
             try {
                 // Step 1: Check if any document has a "status" field
